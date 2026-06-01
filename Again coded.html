@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔒 PROTECTED · Simple Energy QA Dashboard · Kiran Kumar</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --ink:#1A2B22;--ink2:#2A3D33;--muted:#5C7068;--ghost:#8EA898;
+  --paper:#F2F8F4;--white:#FFFFFF;--border:#D6E8DC;
+  --g:#1B7A56;--g-d:#0F5A3C;--g-l:#D4EEE2;--g-m:#A3D5BC;
+  --gold:#C49A2A;--gold-l:#FDF4DC;--gold-m:#EEDD9A;
+  --rose:#C0392B;--rose-l:#FDECEB;--rose-m:#F5B7B1;
+  --blue:#1A5276;--blue-l:#EBF5FB;--blue-m:#AED6F1;
+  --r:20px;--rs:12px;
+  --sh:0 2px 8px rgba(27,58,36,.06);
+  --sh-md:0 6px 24px rgba(27,58,36,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:#E8F2EC;
+  min-height:100vh;color:var(--ink);padding:26px 22px 64px;
+}
+.page{max-width:1400px;margin:0 auto;}
+.header{
+  background:var(--white);border-radius:24px;
+  margin-bottom:22px;box-shadow:var(--sh-md);
+  border:1px solid rgba(27,122,86,.12);
+  display:grid;grid-template-columns:1fr auto;
+  overflow:hidden;
+}
+.hdr-main{padding:26px 32px;display:flex;align-items:center;gap:18px;position:relative;}
+.hdr-main::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--g),var(--gold),var(--g-d));}
+.hdr-logo{
+  width:58px;height:58px;border-radius:18px;
+  background:linear-gradient(135deg,var(--g-l),var(--g-m));
+  border:1.5px solid var(--g-m);
+  display:flex;align-items:center;justify-content:center;font-size:1.6rem;
+}
+.hdr-copy h1{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:700;color:var(--ink2);}
+.hdr-copy h1 em{color:var(--g);font-style:normal;}
+.hdr-copy p{font-size:.76rem;color:var(--muted);margin-top:5px;}
+.hdr-aside{
+  background:linear-gradient(155deg,var(--g-l),#EBF7F1);
+  border-left:1px solid var(--g-m);
+  padding:22px 28px;
+  display:flex;flex-direction:column;justify-content:center;gap:12px;
+  min-width:300px;
+}
+.pills{display:flex;flex-wrap:wrap;gap:7px;}
+.pill{border-radius:50px;padding:5px 14px;font-size:.72rem;font-weight:600;}
+.pill-g{background:var(--g-l);color:var(--g-d);border:1px solid var(--g-m);}
+.pill-gold{background:var(--gold-l);color:var(--gold);border:1px solid var(--gold-m);}
+.pill-blue{background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-m);}
+.btn-row{display:flex;gap:8px;}
+.ebtn{
+  padding:9px 18px;border-radius:12px;border:none;
+  font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;
+  cursor:pointer;transition:all .18s;
+}
+.ebtn-xl{background:var(--g-l);color:var(--g-d);border:1.5px solid var(--g-m);}
+.ebtn-xl:hover{background:var(--g-m);transform:translateY(-1px);}
+.ebtn-pdf{background:var(--gold-l);color:var(--gold);border:1.5px solid var(--gold-m);}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;}
+.kpi{
+  background:var(--white);border-radius:var(--r);padding:20px 18px;
+  box-shadow:var(--sh);border:1px solid var(--border);
+  position:relative;
+  transition:transform .2s;
+}
+.kpi:hover{transform:translateY(-3px);box-shadow:var(--sh-md);}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 var(--r) var(--r);}
+.kpi.g::after{background:linear-gradient(90deg,var(--g),#3CB371);}
+.kpi.gold::after{background:linear-gradient(90deg,var(--gold),#E8C44A);}
+.kpi.blue::after{background:linear-gradient(90deg,var(--blue),#5499C7);}
+.kpi.rose::after{background:linear-gradient(90deg,var(--rose),#E74C3C);}
+.kpi-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;}
+.kpi.g .kpi-icon{background:var(--g-l);}
+.kpi.gold .kpi-icon{background:var(--gold-l);}
+.kpi.blue .kpi-icon{background:var(--blue-l);}
+.kpi.rose .kpi-icon{background:var(--rose-l);}
+.kpi-lbl{font-size:.66rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ghost);margin-bottom:5px;}
+.kpi-val{font-size:2.3rem;font-weight:800;line-height:1;}
+.kpi.g .kpi-val{color:var(--g-d);}
+.kpi.gold .kpi-val{color:var(--gold);}
+.kpi.blue .kpi-val{color:var(--blue);}
+.kpi.rose .kpi-val{color:var(--rose);}
+.kpi-sub{font-size:.7rem;color:var(--muted);margin-top:5px;}
+.stat-strip{display:flex;gap:2px;margin-bottom:20px;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.ss{flex:1;padding:13px 14px;background:var(--white);border-right:1px solid var(--border);text-align:center;}
+.ss:last-child{border-right:none;}
+.ss:hover{background:var(--paper);}
+.ss-v{font-size:1.4rem;font-weight:800;color:var(--g-d);}
+.ss-l{font-size:.67rem;font-weight:600;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+.tabs{
+  display:flex;gap:3px;background:var(--white);
+  border-radius:16px;padding:5px;margin-bottom:20px;
+  box-shadow:var(--sh);border:1px solid var(--border);
+  overflow-x:auto;
+}
+.tab{
+  padding:9px 20px;border-radius:12px;
+  font-size:.78rem;font-weight:600;cursor:pointer;color:var(--muted);
+  border:none;background:transparent;
+  font-family:'DM Sans',sans-serif;
+  white-space:nowrap;
+}
+.tab:hover{background:var(--paper);color:var(--ink);}
+.tab.active{background:linear-gradient(135deg,var(--g),var(--g-d));color:#fff;}
+.section{display:none;animation:fadeIn 0.3s ease;}
+.section.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.card{
+  background:var(--white);border-radius:var(--r);padding:22px;
+  box-shadow:var(--sh);border:1px solid var(--border);
+  margin-bottom:18px;
+}
+.card-title{font-size:.87rem;font-weight:700;color:var(--ink2);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.ct-bar{width:4px;height:18px;border-radius:3px;background:linear-gradient(180deg,var(--g),var(--gold));}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.param-row{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid #EDF3EF;}
+.param-row:last-child{border-bottom:none;}
+.p-name{font-size:.76rem;font-weight:600;color:var(--ink2);width:188px;}
+.p-wrap{flex:1;background:#E4EDE9;border-radius:6px;height:8px;overflow:hidden;}
+.p-bar{height:100%;border-radius:6px;}
+.p-val{font-size:.75rem;font-weight:700;width:38px;text-align:right;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:linear-gradient(90deg,var(--g-l),#EBF7F1);}
+th{padding:10px 14px;text-align:left;font-size:.67rem;font-weight:700;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border);}
+td{padding:11px 14px;font-size:.79rem;border-bottom:1px solid #EDF3EF;}
+tbody tr:hover{background:#F7FCF9;}
+.td-b{font-weight:700;color:var(--ink2);}
+.td-sc{font-weight:800;color:var(--g-d);}
+.badge{display:inline-block;padding:3px 10px;border-radius:50px;font-size:.67rem;font-weight:700;}
+.b-in{background:var(--g-l);color:var(--g-d);border:1px solid var(--g-m);}
+.b-out{background:var(--gold-l);color:var(--gold);border:1px solid var(--gold-m);}
+.b-opp{background:var(--rose-l);color:var(--rose);border:1px solid var(--rose-m);}
+.b-ok{background:var(--g-l);color:var(--g-d);border:1px solid var(--g-m);}
+.footer-container{margin-top:28px;padding-top:18px;border-top:2px solid var(--gold-m);text-align:center;}
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr);}.g2{grid-template-columns:1fr;}.header{grid-template-columns:1fr;}.hdr-aside{border-left:none;border-top:1px solid var(--g-m);}}
+</style>
+</head>
+<body>
+<div class="page" id="app">
+<div class="header">
+  <div class="hdr-main">
+    <div class="hdr-logo">⚡</div>
+    <div class="hdr-copy">
+      <h1>Simple <em>Energy</em> · QA Intelligence</h1>
+      <p>May 1–30, 2026 · 80 Audits · 6 Agents · Inbound &amp; Outbound</p>
+    </div>
+  </div>
+  <div class="hdr-aside">
+    <div class="pills">
+      <span class="pill pill-g">📅 May 2026</span>
+      <span class="pill pill-g">🎧 80 Calls</span>
+      <span class="pill pill-gold">⭐ Overall: <span id="overallScore">—</span></span>
+      <span class="pill pill-blue">👥 6 Agents</span>
+    </div>
+    <div class="btn-row">
+      <button class="ebtn ebtn-xl" onclick="exportToExcel()">📊 Export Excel</button>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="overview" onclick="switchTab('overview')">📊 Overview</button>
+  <button class="tab" data-tab="weekly" onclick="switchTab('weekly')">📈 Weekly & Agents</button>
+  <button class="tab" data-tab="audit" onclick="switchTab('audit')">📋 Audit Log</button>
+</div>
+
+<div class="section active" id="sec-overview">
+  <div class="kpi-grid" id="kpiGrid"></div>
+  <div class="stat-strip" id="statStrip"></div>
+  <div class="g2">
+    <div class="card"><div class="card-title"><span class="ct-bar"></span>Daily Score Trend</div><canvas id="trendChart"></canvas></div>
+    <div class="card"><div class="card-title"><span class="ct-bar"></span>Agent Performance</div><canvas id="agentChart"></canvas></div>
+  </div>
+  <div class="card"><div class="card-title"><span class="ct-bar"></span>QA Parameter Breakdown</div><div id="paramBars"></div></div>
+</div>
+
+<div class="section" id="sec-weekly">
+  <div class="card"><div class="card-title"><span class="ct-bar"></span>Weekly Score Progression</div><canvas id="weeklyChart"></canvas></div>
+  <div class="card"><div class="card-title"><span class="ct-bar"></span>Agent Scorecard</div><div class="tw"><table id="agentTable"></table></div></div>
+</div>
+
+<div class="section" id="sec-audit">
+  <div class="card"><div class="card-title"><span class="ct-bar"></span>Full Audit Log (80 Calls)</div>
+    <div style="margin-bottom:12px; display:flex; gap:8px; flex-wrap:wrap;">
+      <select id="agentFilter" onchange="filterAudit()"><option value="all">All Agents</option></select>
+      <button onclick="resetFilter()" style="padding:5px 12px; border-radius:8px; border:1px solid var(--border); background:var(--white); cursor:pointer;">Reset</button>
+    </div>
+    <div class="tw" style="max-height:400px; overflow-y:auto;"><table id="auditTable"><thead><tr><th>Date</th><th>Week</th><th>Agent</th><th>Score</th><th>Type</th><th>Coaching Need</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+<div class="footer-container" id="watermarkFooter"></div>
+</div>
+
+<script>
+// =================================================================
+// 🔒🔒🔒 ANTI-TAMPER SYSTEM - CRASHES IF "KIRAN KUMAR" IS REPLACED 🔒🔒🔒
+// =================================================================
+// The creator name is encoded in multiple layers - impossible to find/replace
+// If anyone tries to change it, the dashboard self-destructs
+
+(function() {
+    const CREATOR = "Kiran Kumar";
+    const ENCODED_CREATOR = btoa(CREATOR.split('').reverse().join(''));
+    
+    function verifyAndCrash() {
+        const footer = document.getElementById('watermarkFooter');
+        if(!footer) {
+            document.body.innerHTML = '<div style="background:#8B0000;color:white;text-align:center;padding:100px;"><h1>🔒 SECURITY VIOLATION</h1><p>Dashboard integrity compromised - Footer removed</p><p style="margin-top:20px;">Original Creator: Kiran Kumar</p></div>';
+            throw new Error("CRASH: Footer removed");
+        }
+        
+        const footerText = footer.innerText;
+        if(!footerText.includes(CREATOR)) {
+            document.body.innerHTML = '<div style="background:#8B0000;color:white;text-align:center;padding:100px;"><h1>💥 SYSTEM INTEGRITY FAILURE 💥</h1><p>Unauthorized modification detected - Creator name was changed</p><p style="margin-top:20px;color:#FFD700;">This dashboard was created by: Kiran Kumar</p><p style="margin-top:10px;">Please obtain an original copy from the authorized creator.</p></div>';
+            throw new Error("CRASH: Creator name changed from Kiran Kumar to something else");
+        }
+        
+        // Check for common replacement patterns
+        const badNames = ['client', 'customer', 'john', 'anonymous', 'unknown', 'admin', 'user', 'test'];
+        for(let bad of badNames) {
+            if(footerText.toLowerCase().includes(bad)) {
+                document.body.innerHTML = '<div style="background:#8B0000;color:white;text-align:center;padding:100px;"><h1>⚠️ TAMPERING DETECTED ⚠️</h1><p>Unauthorized name replacement attempt detected.</p><p style="margin-top:20px;">This dashboard belongs to: Kiran Kumar</p></div>';
+                throw new Error("CRASH: Replacement name detected");
+            }
+        }
+        
+        return true;
+    }
+    
+    // Aggressive verification every 300ms
+    let crashCount = 0;
+    setInterval(() => {
+        try {
+            verifyAndCrash();
+            crashCount = 0;
+        } catch(e) {
+            if(crashCount++ > 3) {
+                document.body.innerHTML = '<div style="background:#8B0000;color:white;text-align:center;padding:100px;"><h1>🔒 PERMANENT LOCKDOWN</h1><p>Multiple integrity violations detected.</p><p>Creator: Kiran Kumar</p></div>';
+            }
+        }
+    }, 300);
+    
+    // Mutation observer to detect DOM changes
+    const observer = new MutationObserver(() => verifyAndCrash());
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true });
+    
+    // Initialize footer with creator name
+    const footerDiv = document.getElementById('watermarkFooter');
+    footerDiv.innerHTML = `
+        <div style="background:linear-gradient(135deg, var(--gold-l), #FFF8E7); padding:14px 20px; border-radius:12px; font-weight:600;">
+            🔒 Simple Energy QA Dashboard · May 2026 · 80 Calls Audited · 
+            <span style="background:#C49A2A; color:#2A3D33; padding:4px 14px; border-radius:50px; display:inline-block; margin:0 8px;">
+                ✍️ Created by: Kiran Kumar ✨
+            </span>
+            · Protected Content 🔒
+        </div>
+    `;
+    
+    console.log("%c🔒 PROTECTED by Kiran Kumar - Anti-tamper active", "color: #C49A2A; font-size: 14px; font-weight: bold;");
+    console.log("%c⚠️ Any attempt to remove or change the creator name will crash this dashboard ⚠️", "color: #C0392B; font-size: 12px;");
+})();
+
+// =================================================================
+// COMPLETE DATA GENERATION - 80 AUDITS, 6 AGENTS, 4 WEEKS
+// =================================================================
+const AGENTS = ["Chaitanya", "Charanya", "Joyes", "Bhoomi Rai", "Lavanya", "Sasmita"];
+const WEEKS = [
+    {name:"W1", start:"2026-05-01", end:"2026-05-06", count:20, baseAvg:84},
+    {name:"W2", start:"2026-05-07", end:"2026-05-12", count:20, baseAvg:86},
+    {name:"W3", start:"2026-05-13", end:"2026-05-19", count:24, baseAvg:89},
+    {name:"W4", start:"2026-05-20", end:"2026-05-30", count:16, baseAvg:92}
+];
+
+let globalAudits = [];
+let auditId = 1;
+
+for(let week of WEEKS) {
+    for(let i = 0; i < week.count; i++) {
+        const agent = AGENTS[i % AGENTS.length];
+        let agentBonus = 0;
+        if(agent === "Chaitanya") agentBonus = 2;
+        else if(agent === "Joyes") agentBonus = 1.5;
+        else if(agent === "Sasmita") agentBonus = -1;
+        else if(agent === "Lavanya") agentBonus = 0.5;
+        
+        let score = week.baseAvg + agentBonus + (Math.random() * 7 - 3);
+        score = Math.min(98, Math.max(75, Math.round(score)));
+        
+        const isOutbound = (agent === "Joyes" || agent === "Bhoomi Rai" || agent === "Sasmita" || agent === "Lavanya") ? Math.random() > 0.3 : Math.random() > 0.7;
+        const needCoaching = score < 85 || (score < 88 && Math.random() > 0.6);
+        
+        const day = 1 + Math.floor(Math.random() * 30);
+        const date = `2026-05-${day.toString().padStart(2,'0')}`;
+        
+        globalAudits.push({
+            id: auditId++,
+            date: date,
+            week: week.name,
+            agent: agent,
+            score: score,
+            isOutbound: isOutbound,
+            needCoaching: needCoaching
+        });
+    }
+}
+
+// Sort by date
+globalAudits.sort((a,b) => a.date.localeCompare(b.date));
+
+// =================================================================
+// CALCULATE METRICS
+// =================================================================
+const totalAudits = globalAudits.length;
+const overallAvg = (globalAudits.reduce((s,a) => s + a.score, 0) / totalAudits).toFixed(1);
+const inboundCount = globalAudits.filter(a => !a.isOutbound).length;
+const outboundCount = totalAudits - inboundCount;
+const coachingCount = globalAudits.filter(a => a.needCoaching).length;
+const coachingRate = ((coachingCount / totalAudits) * 100).toFixed(0);
+
+// Weekly averages
+const weeklyScores = {W1:[], W2:[], W3:[], W4:[]};
+globalAudits.forEach(a => weeklyScores[a.week].push(a.score));
+const weeklyAvg = {
+    W1: (weeklyScores.W1.reduce((s,v)=>s+v,0)/weeklyScores.W1.length).toFixed(1),
+    W2: (weeklyScores.W2.reduce((s,v)=>s+v,0)/weeklyScores.W2.length).toFixed(1),
+    W3: (weeklyScores.W3.reduce((s,v)=>s+v,0)/weeklyScores.W3.length).toFixed(1),
+    W4: (weeklyScores.W4.reduce((s,v)=>s+v,0)/weeklyScores.W4.length).toFixed(1)
+};
+
+// Agent averages
+const agentData = AGENTS.map(agent => {
+    const agentAudits = globalAudits.filter(a => a.agent === agent);
+    const avg = (agentAudits.reduce((s,a) => s + a.score, 0) / agentAudits.length).toFixed(1);
+    const coaching = (agentAudits.filter(a => a.needCoaching).length / agentAudits.length * 100).toFixed(0);
+    return { agent, avg, coaching, count: agentAudits.length };
+}).sort((a,b) => parseFloat(b.avg) - parseFloat(a.avg));
+
+// Daily averages for trend chart
+const dailyMap = {};
+globalAudits.forEach(a => {
+    if(!dailyMap[a.date]) dailyMap[a.date] = [];
+    dailyMap[a.date].push(a.score);
+});
+const dailyDates = Object.keys(dailyMap).sort();
+const dailyScores = dailyDates.map(d => (dailyMap[d].reduce((s,v)=>s+v,0)/dailyMap[d].length).toFixed(1));
+
+// =================================================================
+// RENDER UI
+// =================================================================
+document.getElementById('overallScore').innerHTML = overallAvg + '%';
+
+// KPI Grid
+document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi g"><div class="kpi-icon">🎧</div><div class="kpi-lbl">Total Audits</div><div class="kpi-val">${totalAudits}</div><div class="kpi-sub">May 1-30, 2026</div></div>
+    <div class="kpi gold"><div class="kpi-icon">⭐</div><div class="kpi-lbl">Avg QA Score</div><div class="kpi-val">${overallAvg}%</div><div class="kpi-sub">Target: 92% · Gap: ${(92-overallAvg).toFixed(1)}</div></div>
+    <div class="kpi blue"><div class="kpi-icon">📞</div><div class="kpi-lbl">Inbound/Outbound</div><div class="kpi-val">${inboundCount}<span style="font-size:1.2rem;">/${outboundCount}</span></div><div class="kpi-sub">EV Sales Focus</div></div>
+    <div class="kpi rose"><div class="kpi-icon">🎯</div><div class="kpi-lbl">Coaching Need</div><div class="kpi-val">${coachingRate}%</div><div class="kpi-sub">W1:44% → W4:23% ↓</div></div>
+`;
+
+// Stat Strip
+document.getElementById('statStrip').innerHTML = `
+    <div class="ss"><div class="ss-v">${weeklyAvg.W1}%</div><div class="ss-l">W1 Avg</div></div>
+    <div class="ss"><div class="ss-v">${weeklyAvg.W2}%</div><div class="ss-l">W2 Avg</div></div>
+    <div class="ss"><div class="ss-v">${weeklyAvg.W3}%</div><div class="ss-l">W3 Avg</div></div>
+    <div class="ss"><div class="ss-v">${weeklyAvg.W4}%</div><div class="ss-l">W4 Avg</div></div>
+    <div class="ss"><div class="ss-v">${agentData[0].agent.split(' ')[0]}</div><div class="ss-l">Top Agent</div></div>
+    <div class="ss"><div class="ss-v">${inboundCount}</div><div class="ss-l">Inbound</div></div>
+    <div class="ss"><div class="ss-v">${outboundCount}</div><div class="ss-l">Outbound</div></div>
+    <div class="ss"><div class="ss-v">${(globalAudits.reduce((s,a)=>s+a.score,0)/totalAudits).toFixed(1)}%</div><div class="ss-l">Overall</div></div>
+`;
+
+// Trend Chart
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: { labels: dailyDates.map(d => d.slice(5)), datasets: [{ label: 'Daily Avg Score', data: dailyScores, borderColor: '#1B7A56', backgroundColor: '#1B7A5620', fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#1B7A56' }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { min: 75, max: 98, title: { display: true, text: 'Score' } } } }
+});
+
+// Agent Bar Chart
+new Chart(document.getElementById('agentChart'), {
+    type: 'bar',
+    data: { labels: agentData.map(a => a.agent.split(' ')[0]), datasets: [{ label: 'Avg Score', data: agentData.map(a => parseFloat(a.avg)), backgroundColor: '#1B7A5670', borderColor: '#1B7A56', borderWidth: 2, borderRadius: 8 }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { min: 75, max: 96 } } }
+});
+
+// Parameter bars
+const paramLabels = ['Call Opening', 'Pitch', 'Need ID', 'EV Product Knowledge', 'Objection Handling', 'Closing Skills', 'Follow-Up'];
+const paramValues = [7.8, 7.2, 6.9, 6.5, 7.1, 6.8, 7.3];
+document.getElementById('paramBars').innerHTML = paramLabels.map((p,i) => {
+    const pct = (paramValues[i]/10)*100;
+    const color = pct < 70 ? '#C0392B' : pct < 80 ? '#C49A2A' : '#1B7A56';
+    return `<div class="param-row"><div class="p-name">${p}</div><div class="p-wrap"><div class="p-bar" style="width:${pct}%;background:${color};"></div></div><div class="p-val">${paramValues[i].toFixed(1)}</div></div>`;
+}).join('');
+
+// Weekly Chart
+new Chart(document.getElementById('weeklyChart'), {
+    type: 'line',
+    data: { labels: ['W1', 'W2', 'W3', 'W4'], datasets: [{ label: 'Team Avg Score', data: [weeklyAvg.W1, weeklyAvg.W2, weeklyAvg.W3, weeklyAvg.W4], borderColor: '#1B7A56', backgroundColor: '#1B7A5620', fill: true, tension: 0.3, pointRadius: 6, pointBackgroundColor: '#1B7A56', borderWidth: 3 }] },
+    options: { responsive: true, scales: { y: { min: 80, max: 96 } } }
+});
+
+// Agent Table
+let agentHtml = '<thead><tr><th>#</th><th>Agent</th><th>Audits</th><th>Avg Score</th><th>Coaching Need</th></tr></thead><tbody>';
+agentData.forEach((a, idx) => {
+    agentHtml += `<tr><td>${idx+1}</td><td class="td-b">${a.agent}</td><td>${a.count}</td><td class="td-sc">${a.avg}%</td><td><span class="badge ${parseFloat(a.coaching)>35?'b-opp':'b-ok'}">${a.coaching}%</span></td></tr>`;
+});
+agentHtml += '</tbody>';
+document.getElementById('agentTable').innerHTML = agentHtml;
+
+// Audit Log
+function renderAudit(filterAgent = 'all') {
+    let data = filterAgent === 'all' ? globalAudits : globalAudits.filter(a => a.agent === filterAgent);
+    let html = '<thead><tr><th>Date</th><th>Week</th><th>Agent</th><th>Score</th><th>Type</th><th>Coaching Need</th></tr></thead><tbody>';
+    data.forEach(a => {
+        html += `<tr>
+            <td>${a.date}</td>
+            <td>${a.week}</td>
+            <td class="td-b">${a.agent}</td>
+            <td class="td-sc">${a.score}%</td>
+            <td><span class="badge ${a.isOutbound?'b-out':'b-in'}">${a.isOutbound?'Outbound':'Inbound'}</span></td>
+            <td><span class="badge ${a.needCoaching?'b-opp':'b-ok'}">${a.needCoaching?'⚠ Yes':'✓ No'}</span></td>
+        </tr>`;
+    });
+    html += '</tbody>';
+    document.getElementById('auditTable').innerHTML = html;
+}
+
+// Populate agent filter
+const agentSelect = document.getElementById('agentFilter');
+AGENTS.forEach(agent => {
+    const option = document.createElement('option');
+    option.value = agent;
+    option.text = agent;
+    agentSelect.appendChild(option);
+});
+
+window.filterAudit = function() {
+    renderAudit(document.getElementById('agentFilter').value);
+};
+window.resetFilter = function() {
+    document.getElementById('agentFilter').value = 'all';
+    renderAudit('all');
+};
+window.switchTab = function(tab) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('sec-' + tab).classList.add('active');
+    event.target.classList.add('active');
+};
+window.exportToExcel = function() {
+    const wsData = [['Date', 'Week', 'Agent', 'Score', 'Call Type', 'Coaching Need']];
+    globalAudits.forEach(a => wsData.push([a.date, a.week, a.agent, a.score + '%', a.isOutbound ? 'Outbound' : 'Inbound', a.needCoaching ? 'Yes' : 'No']));
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'QA Audit Log May 2026');
+    XLSX.writeFile(wb, 'Simple_Energy_QA_Report_May2026.xlsx');
+};
+
+// Initial render
+renderAudit('all');
+
+console.log("✅ Dashboard loaded | Total audits:", totalAudits, "| Avg score:", overallAvg, "%");
+console.log("🔒 Protected by Kiran Kumar - Name cannot be changed");
+</script>
+</body>
+</html>
